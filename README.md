@@ -1,10 +1,10 @@
 # FetchRewards
 
-Hey, so heres my solution. First off, its commented a ton. I dont necessarily like  to overly comment things, but its how ive been conditioned at my current job the past two years, and I was told to assume whoever reads this knows nothing about anything, so I let it be.
+Hey, so heres my solution. First off, its commented a ton. I dont necessarily like  to overly comment things, but its how ive been conditioned at my current job the past two years, and I was told to assume whoever reads this knows nothing about anything, so I let it be. Also, I know it isnt timed, but i took a little while because i havent touched ASP in about a year now and I had to quickly get up to speed on it again.
 
-This is a project built from an ASP.Net Core Web API template. It is in C#. It uses Entity Framwork. It has Swagger enabled and set up (by default) to check on and mess about with the endpoints. Upon starting the solution, you'll be brought to the Swagger page which will allow you to send data to and execute the various endpoints.
+This is a project built from an ASP.Net Core Web API template. It is in C#. It uses Entity Framwork. It has Swagger enabled and set up to check on and mess about with the endpoints. Upon starting the solution, you'll be brought to the Swagger page which will allow you to send data to and get responses from the various endpoints.
 
-Because the code is commented how it is, I'll just run through the various files and functions and give a hopefully brief explanation.
+Because the code is commented how it is, I'll try to just run through the various files and functions and give a hopefully brief explanation.
 
 
 
@@ -12,7 +12,7 @@ Because the code is commented how it is, I'll just run through the various files
 This class is the transaction records and the model that Entity Framework will use to create and access the database layer. It has an ID, along with the Payer, Points, Timestamp stuff that it requires. An empty constructor, a not empty constructor, and a SubtractPoints function. 
 
 ### SubtractPoints 
-subtracts points fromt his transaction record, and will return a positive integer of the remaining points if there were not enough points to do the subtraction. This way if it returns anything but 0, we know to continue going through the transaction record and subtracting points. I could have went deeper and made a 'Payer' model, a 'User', and had the transaction records link to those with a foreign key and all that, but I figured that was too much for this. 
+Subtracts points from this transaction record, and will return a positive integer of the remaining points if there were not enough points to do the subtraction. This way if it returns anything but 0, we know to continue going through the transaction record and subtracting points. I could have went deeper and made a 'Payer' model, a 'User', and had the transaction records link to those with a foreign key and all that, but I figured that was way too much for this. 
 
 
 ## FetchRewards/Models/TransactionRecordContext.cs
@@ -22,24 +22,24 @@ This can be ignored, it's a requirement for Entity Framework to scaffold the con
 ## FetchRewards/Controllers/TransactionRecordsController.cs
 This is the controller for the TransactionRecords endpoints. This is mostly generated with EntityFramework. It came with basic CRUD operations and I got rid of the unused ones. It has a function for getting all transaction records, as well as getting a single one by ID. 
 
-It also has a function for submitting transaction records. Before submitting a transaction record, we check to see if it will cause a negative point balance for the given payer. If not, it is safe, and the record is submitted to the database.
+It also has a function for submitting transaction records. Before submitting a transaction record, we have a check to see if it will cause a negative point balance for the given payer. If not, it is safe, and the record is submitted to the database.
 
 
 ## FetchRewards/Models/PointsController.cs
-This is where most of the work happens. 
+This is where most of the work happens. We can check the point balance for all payers, and spend points,
 
 ### GetPointBalance 
-runs the CalculatePointsBalance function and sends the point balances on as JSON.
+runs the CalculatePointsBalance function and sends the resulting point balances on as JSON.
 
 ### PostSpendPoints 
-runs SpendPoints, which will spend the points, submit transaction records for the spend operation, and returnw hat changes happened. It made more sense to me architecturally to have these functions be dumb, and instead call other functions to do the work, since they're endpoints thats all they'll do.
+runs SpendPoints, which will spend the points, submit transaction records for the spend operation, and return what changes happened. It made more sense to me architecturally to have these two functions be dumb, and instead call other functions to do the work. Since they're endpoints thats all they will do.
 
 ### SpendPoints 
-This is our actual logic. We get all records and order them by time. A quick check to make sure there even are any records. Then, another check to see if there are enough points, overall, to complete the spend operation, if so we constinue. 
+This is our actual logic. We get all records and order them by time. A quick check to make sure there even are any records. Then, another check to see if there are enough points, overall, to complete the spend operation. If so we continue.
 
-We run through all transactions, when we find a negative transaction(a point deduction), we run the SubtractPointsByTransactionRecord function. This function will iterate through and subtract points from the oldest possible transaction records until it has deducted the required amount of points. This will set the stage for us to actually complete our SpendPoints operation. 
+We then run through all transactions, when we find a negative transaction(a point deduction), we run the SubtractPointsByTransactionRecord function. This function will iterate through and subtract points from the oldest possible transaction records until it has deducted the required amount of points. This will set the stage for us to actually complete our SpendPoints operation. 
 
-Now that we have taken old point deducutions into account, we can actually spend the points. we iterate through the transactions and save the amount of points to be deducted. we run SubtractPoints for each transactionRecord and it will return the remainder(if any). This remainder is then subtracted from old amount giving us the amount of points subtracted from the TransactionRecord. this data is then saved in the TransactionCompleted list so we know what work was done.  We then keep iterating thorugh the transactiion records and doign this until we have deducted the required amount of points.
+Now that we have taken old point deducutions into account, we can actually spend the points. we iterate through the transactions and save the amount of points to be deducted. we run SubtractPoints for each transactionRecord and it will return the remainder(if any). This remainder is then subtracted from old amount giving us the amount of points subtracted from the TransactionRecord. this data is then saved in the TransactionCompleted list so we know what work was done.  We then keep iterating thorugh the transactiion records and doing this until we have deducted the required amount of points.
 
 Once that's done, we run ChangeTracker.Clear(). Because entity framework keeps track of these objects, even when we abstract them out into lists, all the changes and point deductions will be reflected in the database unless we do that.
 
@@ -62,4 +62,17 @@ We then iterate thorugh the transaction records, we deduct points, the SubtractP
 
 ### SpendResult and TransactionBalanceResult
 Making these objects just makes it easier to send the results back as JSON. They just hold payer and points data. Theyre pretty similar and could probably be smashed into a single PointsResult class, but they have slightly different functionality and I'd have to reconcile that. I figured this would be fine for this test.
+
+
+#Running the code
+Install Visual Studio.
+Pull the solution from github. 
+Open *'FetchRewards.sln'* with Visual Studio.
+Click the play button titled *'FetchRewards'* on the home ribbon of Visual Studio.
+It should automatically open a browser window, and open it to *'https://localhost:xxxx/swagger/index.html'*
+(also you might need to trust the certificate, there might be a dialog box about that)
+The service is now running, you can send POST data to the endpoints as JSON, just like the test examples, or you can use Swagger.
+
+If using Swagger, dropdown the endpoint you want to work with, click the *'Try It Out'* button, and then give it JSON data and click execute. 
+For SpendPoints it just wants a number value, and for GET requests just click *'execute'*. 
 
