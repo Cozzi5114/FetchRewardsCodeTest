@@ -6,19 +6,24 @@ This is a project built from an ASP.Net Core Web API template. It is in C#. It u
 
 Because the code is commented how it is, I'll just run through the various files and functions and give a hopefully brief explanation.
 
+
+
 ## FetchRewards/Models/TransactionRecord.cs
 This class is the transaction records and the model that Entity Framework will use to create and access the database layer. It has an ID, along with the Payer, Points, Timestamp stuff that it requires. An empty constructor, a not empty constructor, and a SubtractPoints function. 
 
 ### SubtractPoints 
 subtracts points fromt his transaction record, and will return a positive integer of the remaining points if there were not enough points to do the subtraction. This way if it returns anything but 0, we know to continue going through the transaction record and subtracting points. I could have went deeper and made a 'Payer' model, a 'User', and had the transaction records link to those with a foreign key and all that, but I figured that was too much for this. 
 
+
 ## FetchRewards/Models/TransactionRecordContext.cs
 This can be ignored, it's a requirement for Entity Framework to scaffold the controllers.
+
 
 ## FetchRewards/Controllers/TransactionRecordsController.cs
 This is the controller for the TransactionRecords endpoints. This is mostly generated with EntityFramework. It came with basic CRUD operations and I got rid of the unused ones. It has a function for getting all transaction records, as well as getting a single one by ID. 
 
 It also has a function for submitting transaction records. Before submitting a transaction record, we check to see if it will cause a negative point balance for the given payer. If not, it is safe, and the record is submitted to the database.
+
 
 ## FetchRewards/Models/PointsController.cs
 This is where most of the work happens. 
