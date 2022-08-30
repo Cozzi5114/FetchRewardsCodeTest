@@ -71,7 +71,7 @@ Open *'FetchRewards.sln'* with Visual Studio.
 Click the play button titled *'FetchRewards'* on the home ribbon of Visual Studio.
 It should automatically open a browser window, and open it to *'https://localhost:xxxx/swagger/index.html'*
 (also you might need to trust the certificate, there might be a dialog box about that)
-The service is now running, you can send POST data to the endpoints as JSON, just like the test examples, or you can use Swagger.
+The service is now running! You can send POST data to the endpoints as JSON, just like the test examples, or you can use Swagger.
 
 If using Swagger, dropdown the endpoint you want to work with, click the *'Try It Out'* button, and then give it JSON data and click execute. 
 For SpendPoints it just wants a number value, and for GET requests just click *'execute'*. 
