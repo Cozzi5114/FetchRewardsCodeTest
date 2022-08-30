@@ -64,7 +64,7 @@ We then iterate thorugh the transaction records, we deduct points, the SubtractP
 Making these objects just makes it easier to send the results back as JSON. They just hold payer and points data. Theyre pretty similar and could probably be smashed into a single PointsResult class, but they have slightly different functionality and I'd have to reconcile that. I figured this would be fine for this test.
 
 
-#Running the code
+# Running the code
 Install Visual Studio.
 Pull the solution from github. 
 Open *'FetchRewards.sln'* with Visual Studio.
