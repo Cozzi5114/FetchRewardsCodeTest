@@ -85,13 +85,23 @@ The service is now running!! Hopefully. You can send POST data to the endpoints 
 If using Swagger, dropdown the endpoint you want to work with, click the *'Try It Out'* button, and then give it JSON data and click execute. 
 For SpendPoints it just wants a number value, and for GET requests just click *'execute'*. 
 
+
+
+
+
 ____________________
 ____________________
-# Extra Rambling
-So this was really cool. This is probably the best time I've had looking for a job, to be honest. I love that I get to use whatever stack I want and Im not under time constraints. I love that I was given an actual problem that requires critical thinking and decision making, as opposed to multiple-choice questions. I love that it was Fetch Rewards related and not a random thing. 
+# Some Extra Rambling<sub>(optional)</sub>
+So this was really cool. This is probably the best time I've had applying for a job, to be honest. I love that I get to use whatever stack I want and Im not under time constraints. I love that I was given an actual problem that requires critical thinking and decision making, as opposed to multiple-choice questions. I love that it was Fetch Rewards related and not a random thing. 
 
-I was starting to get rusty on ASP stuff, and I've never tried to build out a webservice from scratch before, so I learned some things which will make this beneficial either way. So, like I said, overall i really loved this exercise. You guys are awesome for this, if I ever get into a position to handle a hiring process I'm doing it this way. 
+I was starting to get rusty on ASP stuff, and I've never tried to build out a web service from scratch before, so I did learn some things which will make this beneficial either way. So, like I said, overall i really loved this exercise. You guys are awesome for this, if I ever get into a position to handle a hiring process I'm doing it this way. 
 
-So originally I had made another property in the TransactionRecord object, 'PointsRemaining', which would be tracked in the database and subtracted from. So, in order to not have to pull all transaction records *every time*, and not have to recalculate things *every time*, I could just say "get records with points remaining". Once the points were spent, the value would be set at 0 and the item would be left out when i called the db. This worked fine at first because I had taken your JSON calls and ordred them by time in notepad and sent them in order. Because some of the calls are point deductions, when submitting a transaction record they would deduct points from the oldest possible record at the point of submission. Then, when I did them in the order provided, and a new record came in whose time was was older than that, it would be messed up and not have points subtracted. 
+About this solution, so, originally I had made another property in the TransactionRecord object, 'PointsRemaining', which would be tracked in the database and subtracted from. So, in order to not have to pull all transaction records *every time*, and not have to recalculate things *every time*, I could just say "get records with points remaining". Once the points were spent, the value would be set at 0 and the item would be left out the next time i called the db. 
 
-So, while I do hate having to grab *all* the records and do *all* the math on them every single time(which doesn't at all feel optimal), theres no telling when a transaction record with an older timestamp would come in and mess all that up. So this is how I ended up doing it. I assume it was part of the challenge that the data doesnt necessarily arrive in order based on time, but it really threw me off when I went back to the order provided in the test and I had to change some things really quickly. There's probabyl somethign to be said here about stored procedures and things
+This worked fine at first because I had taken your JSON calls and ordred them by time and sent them in order. Because some of the calls are point deductions, when submitting a transaction record they would deduct points from the oldest possible record at the point of submission. Then, when I did them in the order provided, and a new record came in whose time was was older than that, it would be messed up and not have points subtracted. 
+
+So, while I do hate having to grab *all* the records and do *all* the math on them every single time(which doesn't at all feel optimal), theres no telling when a transaction record with an older timestamp would come in and mess all that up. So this is how I ended up doing it. I assume it was part of the challenge that the data doesnt necessarily arrive in order based on time, but it really threw me off when I went back to the order provided in the test and I had to change some things really quickly. 
+
+Also, there maybe could be something to be done here about stored procedures and things of that nature, but I dont think that's what you wanted, and I'm not actually working with a database with which to make any stored procedures.
+
+Well, that's all i have. I can get really nervous on the phone, and especially with new people, and about stuff like this where its a job search thing. But thats another thing I like like about this. At least this way I dont really have to worry about all that. I mean, if you're reading this right now, that's kind of exactly what I mean. I can just do work, and explain myself, and show my code first instead of seizing up in the moment. Which, i still might do, but at least it'll happen second. 
