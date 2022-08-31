@@ -39,26 +39,28 @@ This is our actual logic. We get all records and order them by time. A quick che
 
 We then run through all transactions, when we find a negative transaction(a point deduction), we run the SubtractPointsByTransactionRecord function. This function will iterate through and subtract points from the oldest possible transaction records until it has deducted the required amount of points. This will set the stage for us to actually complete our SpendPoints operation. 
 
-Now that we have taken old point deducutions into account, we can actually spend the points. we iterate through the transactions and save the amount of points to be deducted. we run SubtractPoints for each transactionRecord and it will return the remainder(if any). This remainder is then subtracted from old amount giving us the amount of points subtracted from the TransactionRecord. this data is then saved in the TransactionCompleted list so we know what work was done.  We then keep iterating thorugh the transactiion records and doing this until we have deducted the required amount of points.
+Now that we have taken old point deducutions into account, we can actually spend the points. we iterate through the transactions and save the amount of points to be deducted. we run SubtractPoints for each TransactionRecord and it will return the remainder(if any). This remainder is then subtracted from old amount giving us the amount of points subtracted from the TransactionRecord. This data is then saved in the TransactionsCompleted list so we know what work was done.  We then keep iterating thorugh the transactiion records and doing this until we have deducted the required amount of points.
 
 Once that's done, we run ChangeTracker.Clear(). Because entity framework keeps track of these objects, even when we abstract them out into lists, all the changes and point deductions will be reflected in the database unless we do that.
 
 Once that's done we just add the items in the TransactionsCompleted list to the transactionRecord, and return a list of SpendResult objects so it can be used to send out JSON response.
 
 ### CalculatePointBalance
-This function gets the point balances for the various payers. We get all trasactions, group them by payer, and then go throught he groups and do math. we take each Point balance, add it to a TransactionBalanceResult object created specifically for this purpose. If while iterating the payer name changes, we know we've finished the previous group of payers and we save that result and start a new TransactionbalanceResult object and continue. once that's done, we have a list of TransactionBalanceResults to be used as a JSON reponse
+This function gets the point balances for the various payers. We get all trasactions, group them by payer, and then go throught he groups and do math. we take each Point balance, add it to a TransactionBalanceResult object created specifically for this purpose. If, while iterating, the Payer name changes, we know we've finished the previous group of payers and we save that result. Then we start a new TransactionbalanceResult object and continue. once that's done, we have a list of TransactionBalanceResults to be turned into a JSON reponse
 
 ### CalculatePointBalanceWithLinq
-This is originally how i did it with Linq. It's explained better int he comments, but it felt like cheating because its literally one line and a return. So I did the previous method and thats the one that gets called. But here's how it would look in Linq if you're curious. Make groups, sum the groups, and return the results as TransactionBalanceResult objects.
+This is originally how i did it with Linq. It's explained better in the comments, but it felt like cheating because its literally one line and a return. So I did the previous method and thats the one that gets called. But here's how it would look in Linq if you're curious. Make groups, sum the groups, and return the results as TransactionBalanceResult objects.
 
 ### SubtractPointsByTransactionRecord
-This lets us take a transaction with a negative balance and the list of transaction records, subtract poitns and omdify the values of those records, and then return the modified list, so that our spend operation will take the right amount of points from the right places.
+This lets us take a transaction with a negative balance and the list of transaction records, subtract points and modify the values of those TransactionRecords, and then return the modified list, so that our spend operation will take the right amount of points from the right places.
 
-This first line is Linq, it a lot, but it just says we want the right payer, we want only older transaction records, which have a positive Points value(its not a record of a point deduction), and order them by time.
+This first line is Linq, it looks like a lot, but it just says we want the right payer, we want only older transaction records, which have a positive Points value, and then order them by time.
 
 We run a quick check to make sure there are any records at all, then we run a check to make sure that we have enough points for a given payer, overall, to deduct. 
 
-We then iterate thorugh the transaction records, we deduct points, the SubtractPoints function will return the remainder to be subtracted(if there is any), and we keep going through records and subtracting points until there is no remainder, which means our operation has finished. We then return the new modified list of transactions with the points deducted
+We then iterate thorugh the transaction records, we deduct points, the SubtractPoints function will return the remainder to be subtracted(if there is any), and we keep going through records and subtracting points until there is no remainder, which means our operation has finished. 
+
+We then return the new modified list of transactions with the points deducted.
 
 ### SpendResult and TransactionBalanceResult
 Making these objects just makes it easier to send the results back as JSON. They just hold payer and points data. Theyre pretty similar and could probably be smashed into a single PointsResult class, but they have slightly different functionality and I'd have to reconcile that. I figured this would be fine for this test.
