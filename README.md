@@ -1,6 +1,6 @@
 # FetchRewards
 
-Hey, so heres my solution. First off, its commented a ton. I dont necessarily like  to overly comment things, I think code should just be more readable and comments should be special, but its how ive been they've wanted it at my current job the past two years, and the test said to assume whoever reads this knows nothing about anything, so I let it be. Also, I know it isnt timed, but i took a little while because i havent touched ASP in a little under a year now and I had to quickly get up to speed on it again.
+Hey, so heres my solution. First off, its commented a ton. I dont necessarily like  to overly comment things, I think code should just be more readable and comments should be special, but its how they've wanted it at my current job the past two years, and the test said to assume whoever reads this knows nothing about anything, so I let it be. Also, I know it isnt timed, but i took a little while because i havent touched ASP in a little under a year now and I had to quickly get up to speed on it again.
 
 This is a project built from an ASP.Net Core Web API template. It is in C#. It uses Entity Framwork. It has Swagger enabled and set up to check on and mess about with the endpoints. Upon starting the solution, you'll be brought to the Swagger page which will allow you to send data to and get responses from the various endpoints.
 
