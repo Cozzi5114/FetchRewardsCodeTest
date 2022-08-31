@@ -1,6 +1,6 @@
 # FetchRewards
 
-Hey, so heres my solution. First off, its commented a ton. I dont necessarily like  to overly comment things, but its how ive been conditioned at my current job the past two years, and I was told to assume whoever reads this knows nothing about anything, so I let it be. Also, I know it isnt timed, but i took a little while because i havent touched ASP in about a year now and I had to quickly get up to speed on it again.
+Hey, so heres my solution. First off, its commented a ton. I dont necessarily like  to overly comment things, I think code should just be more readable and comments should be special, but its how ive been they've wanted it at my current job the past two years, and the test said to assume whoever reads this knows nothing about anything, so I let it be. Also, I know it isnt timed, but i took a little while because i havent touched ASP in a little under a year now and I had to quickly get up to speed on it again.
 
 This is a project built from an ASP.Net Core Web API template. It is in C#. It uses Entity Framwork. It has Swagger enabled and set up to check on and mess about with the endpoints. Upon starting the solution, you'll be brought to the Swagger page which will allow you to send data to and get responses from the various endpoints.
 
@@ -95,7 +95,7 @@ ____________________
 # Some Extra Rambling<sub>(optional)</sub>
 So this was really cool. This is probably the best time I've had applying for a job, to be honest. I love that I get to use whatever stack I want and Im not under time constraints. I love that I was given an actual problem that requires critical thinking and decision making, as opposed to multiple-choice questions. I love that it was Fetch Rewards related and not a random thing. 
 
-I was starting to get rusty on ASP stuff, and I've never tried to build out a web service from scratch before, so I did learn some things which will make this beneficial either way. So, like I said, overall i really loved this exercise. You guys are awesome for this, if I ever get into a position to handle a hiring process I'm doing it this way. 
+I was starting to get rusty on ASP stuff, and I've never tried to build out a little web service from scratch before, so I did learn some things which will make this beneficial either way. So, like I said, overall i really loved this exercise. You guys are awesome for this, if I ever get into a position to handle a hiring process I'm doing it this way. 
 
 About this solution, so, originally I had made another property in the TransactionRecord object, 'PointsRemaining', which would be tracked in the database and subtracted from. So, in order to not have to pull all transaction records *every time*, and not have to recalculate things *every time*, I could just say "get records with points remaining". Once the points were spent, the value would be set at 0 and the item would be left out the next time i called the db. 
 
