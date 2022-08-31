@@ -7,7 +7,7 @@ This is a project built from an ASP.Net Core Web API template. It is in C#. It u
 Because the code is commented how it is, I'll try to just run through the various files and functions and give a hopefully brief explanation.
 
 
-
+# Code Stuff:
 ## FetchRewards/Models/TransactionRecord.cs
 This class is the transaction records and the model that Entity Framework will use to create and access the database layer. It has an ID, along with the Payer, Points, Timestamp stuff that it requires. An empty constructor, a not empty constructor, and a SubtractPoints function. 
 
@@ -66,7 +66,7 @@ We then return the new modified list of transactions with the points deducted.
 Making these objects just makes it easier to send the results back as JSON. They just hold payer and points data. Theyre pretty similar and could probably be smashed into a single PointsResult class, but they have slightly different functionality and I'd have to reconcile that. I figured this would be fine for this test.
 
 
-# Running the code
+# Running the thing:
 Install Visual Studio.
 
 Pull the solution from github. 
