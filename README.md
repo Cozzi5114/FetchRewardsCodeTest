@@ -79,7 +79,8 @@ It should automatically open a browser window, and open it to *'https://localhos
 
 (also you might need to trust the certificate, there might be a dialog box about that)
 
-The service is now running!! Hopefully. You can send POST data to the endpoints as JSON, just like the test examples, or you can use Swagger.
+The service is now running!! Hopefully. 
+If so, you should be able to send POST data to the endpoints as JSON, just like the test examples are formatted, or you can use Swagger.
 
 ### Swagger
 If using Swagger, dropdown the endpoint you want to work with, click the *'Try It Out'* button, and then give it JSON data and click execute. 
