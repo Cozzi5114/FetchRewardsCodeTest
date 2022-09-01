@@ -9,7 +9,7 @@ Because the code is commented how it is, I'll try to just run through the variou
 
 # Code Stuff:
 ## FetchRewards/Models/TransactionRecord.cs
-This class is the transaction records and the model that Entity Framework will use to create and access the database layer. It has an ID, along with the Payer, Points, Timestamp stuff that it requires. An empty constructor, a not empty constructor, and a SubtractPoints function. 
+This class is the transaction record and the model that Entity Framework will use to create and access the database. It has an ID, along with the Payer, Points, Timestamp stuff that it requires. An empty constructor, a not empty constructor, and a SubtractPoints function. 
 
 ### SubtractPoints 
 Subtracts points from this transaction record, and will return a positive integer of the remaining points if there were not enough points to do the subtraction. This way if it returns anything but 0, we know to continue going through the transaction record and subtracting points. I could have went deeper and made a 'Payer' model, a 'User', and had the transaction records link to those with a foreign key and all that, but I figured that was way too much for this. 
@@ -29,30 +29,30 @@ It also has a function for submitting transaction records. Before submitting a t
 This is where most of the work happens. We can check the point balance for all payers, and spend points,
 
 ### GetPointBalance 
-runs the CalculatePointsBalance function and sends the resulting point balances on as JSON.
+Runs the CalculatePointsBalance function and sends the resulting point balances on as JSON.
 
 ### PostSpendPoints 
-runs SpendPoints, which will spend the points, submit transaction records for the spend operation, and return what changes happened. It made more sense to me architecturally to have these two functions be dumb, and instead call other functions to do the work. Since they're endpoints thats all they will do.
+Runs SpendPoints, which will spend the points, submit transaction records for the spend operation, and return what changes happened. It made more sense to me architecturally to have these two functions be dumb, and instead call other functions to do the work. Since they're endpoints thats all they will do.
 
 ### SpendPoints 
 This is our actual logic. We get all records and order them by time. A quick check to make sure there even are any records. Then, another check to see if there are enough points, overall, to complete the spend operation. If so we continue.
 
-We then run through all transactions, when we find a negative transaction(a point deduction), we run the SubtractPointsByTransactionRecord function. This function will iterate through and subtract points from the oldest possible transaction records until it has deducted the required amount of points. This will set the stage for us to actually complete our SpendPoints operation. 
+We then run through all transactions, when we find a negative transaction(a point deduction), we run the SubtractPointsByTransactionRecord function. This function will iterate through and subtract points from the oldest possible transaction records until it has deducted the required amount of points. This will set the stage for us to actually do the work for our SpendPoints operation. 
 
-Now that we have taken old point deducutions into account, we can actually spend the points. we iterate through the transactions and save the amount of points to be deducted. we run SubtractPoints for each TransactionRecord and it will return the remainder(if any). This remainder is then subtracted from old amount giving us the amount of points subtracted from the TransactionRecord. This data is then saved in the TransactionsCompleted list so we know what work was done.  We then keep iterating thorugh the transactiion records and doing this until we have deducted the required amount of points.
+Now that we have taken old point deducutions into account, we can actually spend the points. We iterate through the transactions and save the amount of points to be deducted. we run SubtractPoints for each TransactionRecord and it will return the remainder(if any). This remainder is then subtracted from old amount giving us the amount of points subtracted from the TransactionRecord. This data is then saved in the TransactionsCompleted list so we know what work was done.  We then keep iterating thorugh the transaction records and doing this until we have deducted the required amount of points.
 
 Once that's done, we run ChangeTracker.Clear(). Because entity framework keeps track of these objects, even when we abstract them out into lists, all the changes and point deductions will be reflected in the database unless we do that.
 
-Once that's done we just add the items in the TransactionsCompleted list to the transactionRecord, and return a list of SpendResult objects so it can be used to send out JSON response.
+Once that's done we just add the items in the TransactionsCompleted list to the transactionRecord, and return a list of SpendResult objects so it can be used to send out a JSON response.
 
 ### CalculatePointBalance
-This function gets the point balances for the various payers. We get all trasactions, group them by payer, and then go throught he groups and do math. we take each Point balance, add it to a TransactionBalanceResult object created specifically for this purpose. If, while iterating, the Payer name changes, we know we've finished the previous group of payers and we save that result. Then we start a new TransactionbalanceResult object and continue. once that's done, we have a list of TransactionBalanceResults to be turned into a JSON reponse
+This function gets the point balances for the various payers. We get all trasactions, group them by payer, and then go through the groups and do math. We take each Point balance, and add it to a TransactionBalanceResult object created specifically for this purpose. If, while iterating, the Payer name changes, we know we've finished the previous group of payers and we save that result. Then we start a new TransactionbalanceResult object and continue. once that's done, we have a list of TransactionBalanceResults to be turned into a JSON reponse
 
 ### CalculatePointBalanceWithLinq
 This is originally how i did it with Linq. It's explained better in the comments, but it felt like cheating because its literally one line and a return. So I did the previous method and thats the one that gets called. But here's how it would look in Linq if you're curious. Make groups, sum the groups, and return the results as TransactionBalanceResult objects.
 
 ### SubtractPointsByTransactionRecord
-This lets us take a transaction with a negative balance and the list of transaction records, subtract points and modify the values of those TransactionRecords, and then return the modified list, so that our spend operation will take the right amount of points from the right places.
+This lets us take a transaction with a negative balance and the list of transaction records, subtract points, modify the values of those TransactionRecords, and then return the modified list, so that our spend operation will take the right amount of points from the right places.
 
 This first line is Linq, it looks like a lot, but it just says we want the right payer, we want only older transaction records, which have a positive Points value, and then order them by time.
 
@@ -75,7 +75,7 @@ Open *'FetchRewards.sln'* with Visual Studio.
 
 Click the play button titled *'FetchRewards'* on the home ribbon of Visual Studio.
 
-It should automatically open a browser window, and open it to *'https://localhost:xxxx/swagger/index.html'*
+It should automatically open a browser window, and should open it to *'https://localhost:xxxx/swagger/index.html'*
 
 (also you might need to trust the certificate, there might be a dialog box about that)
 
@@ -97,9 +97,9 @@ So this was really cool. This is probably the best time I've had applying for a 
 
 I was starting to get rusty on ASP stuff, and I've never tried to build out a little web service from scratch before, so I did learn some things which will make this beneficial either way. So, like I said, overall i really loved this exercise. You guys are awesome for this, if I ever get into a position to handle a hiring process I'm doing it this way. 
 
-About this solution, so, originally I had made another property in the TransactionRecord object, 'PointsRemaining', which would be tracked in the database and subtracted from. So, in order to not have to pull all transaction records *every time*, and not have to recalculate things *every time*, I could just say "get records with points remaining". Once the points were spent, the value would be set at 0 and the item would be left out the next time i called the db. 
+About this solution, so, originally I had made another property in the TransactionRecord object, 'PointsRemaining', which would be tracked in the database and subtracted from. So, in order to not have to pull *all* transaction records *every time*, and not have to recalculate things *every time*, I could just say "get records with points remaining". Once the points were spent, the value would be set at 0 and the item would be left out the next time i called the db. 
 
-This worked fine at first because I had taken your JSON calls and ordred them by time and sent them in order. Because some of the calls are point deductions, when submitting a transaction record they would deduct points from the oldest possible record at the point of submission. Then, when I did them in the order provided, and a new record came in whose time was was older than that, it would be messed up and not have points subtracted. 
+This worked fine at first because I had taken your JSON calls and ordred them by time and sent them in order. Because some of the calls are point deductions, when submitting a transaction record they would deduct points from the oldest possible record *at the point of submission*. Then, when I did them in the order provided, and a new record came in whose time was was older than that, it would be messed up and not have points subtracted. 
 
 So, while I do hate having to grab *all* the records and do *all* the math on them every single time(which doesn't at all feel optimal), theres no telling when a transaction record with an older timestamp would come in and mess all that up. So this is how I ended up doing it. I assume it was part of the challenge that the data doesnt necessarily arrive in order based on time, but it really threw me off when I went back to the order provided in the test and I had to change some things really quickly. 
 
