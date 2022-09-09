@@ -76,6 +76,11 @@ namespace FetchRewards.Controllers
                 _context.TransactionRecords.Add(transactionRecord);
                 await _context.SaveChangesAsync();
             }
+            else
+            {
+                return new JsonResult(new ErrorResult("Cannot add points","Adding these points would cause a negative balance."));
+            }
+
 
             return CreatedAtAction("GetTransactionRecord", new { id = transactionRecord.ID }, transactionRecord);
         }

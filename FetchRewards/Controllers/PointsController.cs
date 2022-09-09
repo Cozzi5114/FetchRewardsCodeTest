@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using FetchRewards.Models;
+using Microsoft.AspNetCore.Mvc.ApplicationModels;
 
 namespace FetchRewards.Controllers
 {
@@ -35,9 +36,7 @@ namespace FetchRewards.Controllers
                 return NotFound();
             }
 
-            List<TransactionBalanceResult> results = CalculatePointBalance();
-
-            return new JsonResult(results);
+            return CalculatePointBalance();
         }
 
 
@@ -56,12 +55,12 @@ namespace FetchRewards.Controllers
                 return Problem("Entity set 'TransactionRecordContext.TransactionRecords'  is null.");
             }
 
-            List<SpendResult> results = SpendPoints(points);
+            JsonResult result = SpendPoints(points);
 
             await _context.SaveChangesAsync();
 
 
-            return new JsonResult(results);
+            return result;
 
         }
 
@@ -71,7 +70,7 @@ namespace FetchRewards.Controllers
         /// </summary>
         /// <param name="amount">The amount of points to attempt to spend</param>
         /// <returns>a list of type SpendResult, which is an object used to hold the changes made in the transaction record </returns>
-        private List<SpendResult> SpendPoints(int amount)
+        private JsonResult SpendPoints(int amount)
         {
 
             //select transaction records and order them by time.
@@ -80,14 +79,14 @@ namespace FetchRewards.Controllers
 
             if (sortedTransactions.Count <= 0)
             {
-                //if there are no results, throw error
+                return new JsonResult (new ErrorResult("No transactions found", "No transactions exist for this user."));
             }
 
             bool notEnoughPointsAvailable = (sortedTransactions.Sum(X => X.Points)) <= amount;
             if (notEnoughPointsAvailable)
             {
                 //if not enough points are available to subtract, throw error
-                throw new Exception();
+                return new JsonResult(new ErrorResult("Not Enough Points Available", "There are not enough points available to spend."));
             }
 
 
@@ -98,7 +97,7 @@ namespace FetchRewards.Controllers
             foreach (TransactionRecord tr in sortedTransactions)
             {
                 //if we run into a point deduction
-                 if (tr.Points < 0)
+                if (tr.Points < 0)
                 {
                     //subtract points from the items in our working list 
                     subtractedTransactions = SubtractPointsByTransactionRecord(tr, subtractedTransactions);
@@ -146,13 +145,13 @@ namespace FetchRewards.Controllers
             }
 
             //create a list of type SpendResult to return the newly created transactions.
-            List<SpendResult> results = new List<SpendResult>();
+            List<TransactionResult> results = new List<TransactionResult>();
             foreach (TransactionRecord tr in transactionsCompleted)
             {
-                results.Add(new SpendResult(tr));
+                results.Add(new TransactionResult(tr));
             }
 
-            return results;
+            return new JsonResult(results);
         }
 
 
@@ -160,14 +159,19 @@ namespace FetchRewards.Controllers
         /// calculates the balance of points and groups them by payer
         /// </summary>
         /// <returns></returns>
-        private List<TransactionBalanceResult> CalculatePointBalance()
+        private JsonResult CalculatePointBalance()
         {
             //a list of transactions, ordered by payer, and a results list to hold the calculated balances.
             List<TransactionRecord> orderedTransactions = _context.TransactionRecords.Select(x => x).OrderBy(x => x.Payer).ToList();
-            List<TransactionBalanceResult> results = new List<TransactionBalanceResult>();
+            List<TransactionResult> results = new List<TransactionResult>();
+
+            if (orderedTransactions.Count == 0)
+            {
+                return new JsonResult(new ErrorResult("No Transactions Found","No transaction records exist to calculate a balance for."));
+            }
 
             //a temporary object to work with while we add up our balances
-            TransactionBalanceResult currentResult = new TransactionBalanceResult(orderedTransactions[0].Payer);
+            TransactionResult currentResult = new TransactionResult(orderedTransactions[0].Payer);
             foreach (TransactionRecord tr in orderedTransactions)
             {
                 //if payer doesnt match, we're at the end of the group, so save the old one and start over with a fresh result object. 
@@ -175,18 +179,18 @@ namespace FetchRewards.Controllers
                 {
                     //save current result and start new count
                     results.Add(currentResult);
-                    currentResult = new TransactionBalanceResult(tr.Payer);
+                    currentResult = new TransactionResult(tr.Payer);
                 }
-                    currentResult.addPoints(tr.Points);
+                currentResult.addPoints(tr.Points);
             }
 
             //add the final calculated Balance to the results
             results.Add(currentResult);
 
-            return results;
+            return new JsonResult(results);
         }
 
-        private List<TransactionBalanceResult> CalculatePointBalanceWithLinq()
+        private List<TransactionResult> CalculatePointBalanceWithLinq()
         {
             //here's how it would work in Linq?
             //So this method isnt called, but I feel like just throwing one line of Linq here was a cop out for a code test,
@@ -195,8 +199,8 @@ namespace FetchRewards.Controllers
             //this basically says group records by payer, and then for each of those groups
             //create a new transactionBalanceResult object whose 'Payer' value is taken from the first result in the group,
             //and whose 'Points' value is the sum of all 'Points' values in the group
-            List<TransactionBalanceResult> results = _context.TransactionRecords.GroupBy(x => x.Payer).
-                Select(g => new TransactionBalanceResult(g.First().Payer, g.Sum(x => x.Points))).ToList();
+            List<TransactionResult> results = _context.TransactionRecords.GroupBy(x => x.Payer).
+                Select(g => new TransactionResult(g.First().Payer, g.Sum(x => x.Points))).ToList();
 
             return results;
         }
@@ -213,18 +217,19 @@ namespace FetchRewards.Controllers
 
             if (validTransactionsFromThisPayer.Count <= 0)
             {
-                //if there are no results, throw error
+                //if there are no results, return transactions without modifying it
                 return transactions;
             }
 
             if ((validTransactionsFromThisPayer.Sum(X => X.Points)) < transaction.Points)
             {
-                //if not enough points are available to subtract, throw error
+                //if not enough points are available to subtract, return transactions witout modifying it
                 return transactions;
             }
 
 
             int counter = 0;
+
             //using absolute value for readability purposes. Could leave it negative and just add the negative value on the SubTractPoints function.
             int amountToSubtract = Math.Abs(transaction.Points);
             while (amountToSubtract > 0)
@@ -240,37 +245,27 @@ namespace FetchRewards.Controllers
         }
 
         /// <summary>
-        /// An object to hold resulting transactions of a spend operation.
+        /// an object to keep track of a balance calcualtion
         /// </summary>
-        public class SpendResult
+        public class TransactionResult
         {
             public string Payer { get; set; }
             public int Points { get; set; }
 
-            public SpendResult(TransactionRecord tr)
+            public TransactionResult(TransactionRecord tr)
             {
                 Payer = tr.Payer;
                 Points = tr.Points;
             }
 
-        }
-
-        /// <summary>
-        /// an object to keep track of a balance calcualtion
-        /// </summary>
-        public class TransactionBalanceResult
-        {
-            public string Payer { get; set; }
-            public int Points { get; set; }
-
-            public TransactionBalanceResult(string payer)
+            public TransactionResult(string payer)
             {
                 Payer = payer;
                 Points = 0;
             }
 
             //This constructor is only here for calculating balances with Linq. It is currently unused.
-            public TransactionBalanceResult(string payer, int points)
+            public TransactionResult(string payer, int points)
             {
                 Payer = payer;
                 Points = points;
@@ -279,9 +274,21 @@ namespace FetchRewards.Controllers
             //Adds points. Didnt really have to make this but it just feels better to me architecture-wise. 
             internal void addPoints(int pointsToAdd)
             {
-                    Points += pointsToAdd;
+                Points += pointsToAdd;
             }
         }
+    }
 
+
+    public class ErrorResult
+    {
+        public string ErrorTitle { get; set; }
+        public string ErrorDescription { get; set; }
+
+        public ErrorResult(string title, string description)
+        {
+            ErrorTitle = title;
+            ErrorDescription = description;
+        }
     }
 }
